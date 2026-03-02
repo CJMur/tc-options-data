@@ -1,0 +1,35 @@
+name: Auto-Update Parquet Data
+
+on:
+  schedule:
+    - cron: '*/15 * * * *' # Runs every 15 minutes automatically
+  workflow_dispatch: # Allows you to click a button to run it manually
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Allows the bot to save the files back to the repo
+      
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install Dependencies
+        run: pip install pandas pyarrow requests
+        
+      - name: Run Data Fetcher
+        run: python update_data.py
+        
+      - name: Commit and Push Parquet Files
+        run: |
+          git config --global user.name "Data-Bot"
+          git config --global user.email "action@github.com"
+          git add *.parquet
+          git commit -m "Auto-update data files" || exit 0
+          git push
